@@ -16,7 +16,6 @@ function setup() {
 	add_action( 'location_edit_form_fields', __NAMESPACE__  . '\edit_location_social_metadata' );
 	add_action( 'edit_location', __NAMESPACE__  . '\save_location_social_metadata' );
 	add_action( 'create_location', __NAMESPACE__  . '\save_location_social_metadata' );
-	add_action( 'init', __NAMESPACE__  . '\register_location_metadata' );
 }
 
 setup();
@@ -45,18 +44,6 @@ function supported_social_networks() {
 			'twitter'   => esc_html__( 'Twitter', 'text-domain' ),
 			'linkedin'  => esc_html__( 'LinkedIn', 'text-domain' )
 	);
-}
-
-function register_location_metadata() {
-	$social_networks = supported_social_networks();
-	foreach ( $social_networks as $network => $value ) {
-		$network = 'location_' . $value . '_metadata';
-		register_meta( 'term', $network, 'location_sanitize_social_url' );
-	}
-}
-
-function location_sanitize_social_url( $url ) {
-	return esc_url_raw( $url );
 }
 
 function new_location_social_metadata() {
