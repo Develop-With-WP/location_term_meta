@@ -56,10 +56,16 @@ function new_location_social_metadata() {
 
 	<?php foreach ( $social_networks as $network => $value ) { ?>
 		<div class="form-field location-metadata">
-			<label for="<?php echo esc_attr( $network ); ?>-metadata">
+			<label for="<?php printf( esc_html__( '%s-metadata', 'text-domain' ), $network ); ?>">
 				<?php printf( esc_html__( '%s URL', 'text-domain' ), esc_html( $value ) ); ?>
 			</label>
-			<input type="text" name="location_<?php echo esc_attr( $network ) ?>_metadata" id="<?php echo esc_attr( $network ) ?>-metadata" value="" class="social-metadata-field" />
+			<input
+				type="text"
+				name="<?php printf( esc_html__( 'location_%s_metadata', 'text-domain' ), esc_attr( $network ) ); ?>"
+				id="<?php printf( esc_html__( '%s-metadata', 'text-domain' ), esc_attr( $network ) ); ?>"
+				value=""
+				class="social-metadata-field"
+			/>
 		</div>
 	<?php }
 }
@@ -77,14 +83,14 @@ function edit_location_social_metadata( $term ) {
 
 		<tr class="form-field location-metadata">
 			<th scope="row">
-				<label for="<?php echo esc_attr( $network ); ?>-metadata">
+				<label for="<?php printf( esc_html__( '%s-metadata', 'text-domain' ), $network ); ?>">
 					<?php printf( esc_html__( '%s URL', 'text-domain' ), esc_html( $value ) ); ?>
 				</label>
 			</th>
 			<td>
 				<input type="text"
-				       name="location_<?php echo esc_attr( $network ) ?>_metadata"
-				       id="<?php echo esc_attr( $network ) ?>-metadata"
+				       name="<?php printf( esc_html__( 'location_%s_metadata', 'text-domain' ), esc_attr( $network ) ); ?>"
+				       id="<?php printf( esc_html__( '%s-metadata', 'text-domain' ), esc_attr( $network ) ); ?>"
 				       value="<?php echo ( ! empty( $metadata ) ) ? esc_attr( $metadata ) : ''; ?>"
 				       class="social-metadata-field"
 				/>
