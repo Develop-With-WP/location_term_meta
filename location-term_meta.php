@@ -10,6 +10,17 @@ Author URI: twitter.com/mrbobbybryant
 
 namespace Location_Term_Meta;
 
+function setup() {
+	add_action( 'init', __NAMESPACE__ . '\register_location_taxonomy' );
+	add_action( 'location_add_form_fields', __NAMESPACE__  . '\new_location_social_metadata' );
+	add_action( 'location_edit_form_fields', __NAMESPACE__  . '\edit_location_social_metadata' );
+	add_action( 'edit_location', __NAMESPACE__  . '\save_location_social_metadata' );
+	add_action( 'create_location', __NAMESPACE__  . '\save_location_social_metadata' );
+	add_action( 'init', __NAMESPACE__  . '\register_location_metadata' );
+}
+
+setup();
+
 function register_location_taxonomy() {
 	$labels = array(
 		'name'              => _x( 'Locations', 'text-domain' ),
@@ -27,4 +38,93 @@ function register_location_taxonomy() {
 
 	register_taxonomy( 'location', 'post', array( 'labels' => $labels ) );
 }
-add_action( 'init', __NAMESPACE__ . '\register_location_taxonomy' );
+
+function supported_social_networks() {
+	return array(
+			'facebook'  => esc_html__( 'Facebook', 'text-domain' ),
+			'twitter'   => esc_html__( 'Twitter', 'text-domain' ),
+			'linkedin'  => esc_html__( 'LinkedIn', 'text-domain' )
+	);
+}
+
+function register_location_metadata() {
+	$social_networks = supported_social_networks();
+	foreach ( $social_networks as $network => $value ) {
+		$network = 'location_' . $value . '_metadata';
+		register_meta( 'term', $network, 'location_sanitize_social_url' );
+	}
+}
+
+function location_sanitize_social_url( $url ) {
+	return esc_url_raw( $url );
+}
+
+function new_location_social_metadata() {
+	wp_nonce_field( basename( __FILE__ ), 'location_social_nonce' );
+	$social_networks = supported_social_networks(); ?>
+
+	<th scope="row" valign="top" colspan="2">
+		<h3><?php esc_html_e( 'Social Network Options', 'text-domain' ); ?></h3>
+	</th>
+
+	<?php foreach ( $social_networks as $network => $value ) { ?>
+		<div class="form-field location-metadata">
+			<label for="<?php echo esc_attr( $network ); ?>-metadata">
+				<?php printf( esc_html__( '%s URL', 'text-domain' ), esc_html( $value ) ); ?>
+			</label>
+			<input type="text" name="location_<?php echo esc_attr( $network ) ?>_metadata" id="<?php echo esc_attr( $network ) ?>-metadata" value="" class="social-metadata-field" />
+		</div>
+	<?php }
+}
+function edit_location_social_metadata( $term ) {
+	wp_nonce_field( basename( __FILE__ ), 'location_social_nonce' );
+	$social_networks = supported_social_networks(); ?>
+
+	<th scope="row" valign="top" colspan="2">
+		<h3><?php esc_html_e( 'Social Network Options', 'text-domain' ); ?></h3>
+	</th>
+
+	<?php foreach ( $social_networks as $network => $value ) {
+		$term_key = sprintf( 'location_%s_metadata', $network );
+		$metadata = get_term_meta( $term->term_id, $term_key, true ); ?>
+
+		<tr class="form-field location-metadata">
+			<th scope="row">
+				<label for="<?php echo esc_attr( $network ); ?>-metadata">
+					<?php printf( esc_html__( '%s URL', 'text-domain' ), esc_html( $value ) ); ?>
+				</label>
+			</th>
+			<td>
+				<input type="text"
+				       name="location_<?php echo esc_attr( $network ) ?>_metadata"
+				       id="<?php echo esc_attr( $network ) ?>-metadata"
+				       value="<?php echo ( ! empty( $metadata ) ) ? esc_attr( $metadata ) : ''; ?>"
+				       class="social-metadata-field"
+				/>
+			</td>
+		</tr>
+	<?php }
+}
+
+function save_location_social_metadata( $term_id ) {
+	/**
+	 * Check if nonce is set
+	 */
+	if ( ! isset( $_POST[ 'location_social_nonce' ] ) ) {
+		return;
+	}
+	/**
+	 * Verify Nonce
+	 */
+	if ( ! wp_verify_nonce( $_POST['location_social_nonce'], basename( __FILE__ ) ) ) {
+		return;
+	}
+	$social_networks = supported_social_networks();
+	foreach ( $social_networks as $network => $value ) {
+		$term_key = sprintf( 'location_%s_metadata', $network );
+		if ( isset( $_POST[ $term_key ] ) ) {
+			update_term_meta( $term_id, esc_attr( $term_key ), esc_url_raw( $_POST[ $term_key ] ) );
+		}
+	}
+}
+
